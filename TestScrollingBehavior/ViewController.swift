@@ -143,7 +143,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     }
     
     private var contentOffset: CGPoint {
-        .init(x: 0, y: self.headerHeightAnchor.constant - self.topHeight)
+        .init(x: 0, y: self.topHeight - self.headerHeightAnchor.constant )
     }
     
     private var lastPan: Date?
@@ -212,7 +212,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     }
     
     private func completeGesture(withVelocity velocity: CGPoint) {
-//        if contentOffsetBounds.containsIncludingBorders(contentOffset) {
+//        if scrollView!.contentOffset.y <= 0 {
             startDeceleration(withVelocity: velocity)
 //        }
     }
@@ -221,19 +221,12 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     var lastDecelerationOffset: CGFloat? = nil
     private func startDeceleration(withVelocity velocity: CGPoint) {
         let d = UIScrollView.DecelerationRate.normal.rawValue
-        let parameters = DecelerationTimingParameters(initialValue: contentOffset, initialVelocity: velocity,
+        let parameters = DecelerationTimingParameters(initialValue: .zero, initialVelocity: velocity,
                                                       decelerationRate: d, threshold: 0.1)
                                                       
         let destination = parameters.destination
-//        let intersection = getIntersection(rect: contentOffsetBounds, segment: (contentOffset, destination))
-        
-        let duration: TimeInterval
-        
-//        if let intersection = intersection, let intersectionDuration = parameters.duration(to: intersection) {
-//            duration = intersectionDuration
-//        } else {
-            duration = parameters.duration
-//        }
+        let duration = parameters.duration
+
         lastDecelerationOffset = nil
         contentOffsetAnimation = TimerAnimation(
             duration: duration,
