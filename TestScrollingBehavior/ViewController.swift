@@ -26,10 +26,10 @@ class TopController : UIViewController {
 
 // Present the view controller in the Live View window
 
-class HeaderContainerViewController: UIViewController, Scrollable, HeaderContainable, UIGestureRecognizerDelegate {
+class HeaderContainerViewController: UIViewController, Scrollable, HeaderContainable, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     var scrollView: UIScrollView? {
         didSet {
-            scrollView?.addGestureRecognizer(panRecognizer)
+            scrollView?.delegate = self
         }
     }
     
@@ -49,7 +49,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     private func setup() {
         panRecognizer.addTarget(self, action: #selector(handlePanRecognizer))
         panRecognizer.delegate = self
-        
+        view.addGestureRecognizer(panRecognizer)
 //        scrollView?.panGestureRecognizer.delegate = self
         
         
@@ -155,20 +155,31 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         contentOffsetAnimation = nil
     }
         
+    var lastTranslation: CGPoint? = nil
     @objc private func handlePanRecognizer(_ sender: UIPanGestureRecognizer) {
         let newPan = Date()
         switch sender.state {
         case .began:
+            print("began")
             stopOffsetAnimation()
             state = .dragging(initialOffset: contentOffset)
-        
+        lastTranslation = nil
         case .changed:
+            print("changed")
             let translation = sender.translation(in: self.view)
             if case .dragging(let initialOffset) = state {
-                self.render(offset: clampOffset(initialOffset - translation))
+                if lastTranslation == nil {
+                    handleScroll(scrollView!, with: -translation.y)
+                } else {
+                    handleScroll(scrollView!, with: lastTranslation!.y - translation.y)
+                    print(lastTranslation!.y - translation.y)
+                }
+                lastTranslation = translation
+
             }
         
         case .ended:
+            lastTranslation = nil
             state = .default
             
             // Pan gesture recognizers report a non-zero terminal velocity even
@@ -183,7 +194,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
             let velocity: CGPoint = userHadStoppedDragging ? .zero : sender.velocity(in: self.view)
             completeGesture(withVelocity: -velocity)
             
-        case .cancelled, .failed:
+        case .cancelled:
             state = .default
             
         case .possible:
@@ -201,35 +212,42 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     }
     
     private func completeGesture(withVelocity velocity: CGPoint) {
-        if contentOffsetBounds.containsIncludingBorders(contentOffset) {
+//        if contentOffsetBounds.containsIncludingBorders(contentOffset) {
             startDeceleration(withVelocity: velocity)
-        }
+//        }
     }
 
+    
+    var lastDecelerationOffset: CGFloat? = nil
     private func startDeceleration(withVelocity velocity: CGPoint) {
         let d = UIScrollView.DecelerationRate.normal.rawValue
         let parameters = DecelerationTimingParameters(initialValue: contentOffset, initialVelocity: velocity,
                                                       decelerationRate: d, threshold: 0.1)
                                                       
         let destination = parameters.destination
-        let intersection = getIntersection(rect: contentOffsetBounds, segment: (contentOffset, destination))
+//        let intersection = getIntersection(rect: contentOffsetBounds, segment: (contentOffset, destination))
         
         let duration: TimeInterval
         
-        if let intersection = intersection, let intersectionDuration = parameters.duration(to: intersection) {
-            duration = intersectionDuration
-        } else {
+//        if let intersection = intersection, let intersectionDuration = parameters.duration(to: intersection) {
+//            duration = intersectionDuration
+//        } else {
             duration = parameters.duration
-        }
-        
+//        }
+        lastDecelerationOffset = nil
         contentOffsetAnimation = TimerAnimation(
             duration: duration,
             animations: { [weak self] _, time in
-                print(parameters.value(at: time))
-                self?.render(offset: parameters.value(at: time))
+                let offset = parameters.value(at: time).y
+                if self!.lastDecelerationOffset == nil {
+                    self!.handleScroll(self!.scrollView!, with: offset)
+                } else {
+                    self?.handleScroll(self!.scrollView!, with: offset - self!.lastDecelerationOffset!)
+                }
+                self?.lastDecelerationOffset = offset
             },
             completion: { [weak self] finished in
-                guard finished && intersection != nil else { return }
+//                guard finished && intersection != nil else { return }
             })
     }
     
@@ -266,7 +284,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         } else if newHeight > self.topHeight {
             self.headerHeightAnchor.constant = self.topHeight
         } else {
-//            self.headerHeightAnchor.constant = newHeight
+            self.headerHeightAnchor.constant = newHeight
 
 //            print(scrollView.panGestureRecognizer.state.rawValue)
 //            handlePanRecognizer(scrollView.panGestureRecognizer)
