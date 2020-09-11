@@ -27,13 +27,17 @@ class TopController : UIViewController {
 // Present the view controller in the Live View window
 
 class HeaderContainerViewController: UIViewController, Scrollable, HeaderContainable, UIGestureRecognizerDelegate, UIScrollViewDelegate {
+    
+    private enum State {
+        case `default`
+        case dragging(initialOffset: CGPoint)
+    }
+    
     var scrollView: UIScrollView? {
         didSet {
             scrollView?.delegate = self
         }
     }
-    
-    var didScroll: ((UIScrollView, CGFloat) -> ())?
     
     var topHeight: CGFloat = 0
     var headerHeightAnchor: NSLayoutConstraint!
@@ -50,14 +54,6 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         panRecognizer.addTarget(self, action: #selector(handlePanRecognizer))
         panRecognizer.delegate = self
         view.addGestureRecognizer(panRecognizer)
-//        scrollView?.panGestureRecognizer.delegate = self
-        
-        
-    }
-    
-    private enum State {
-        case `default`
-        case dragging(initialOffset: CGPoint)
     }
     
     var headerState: HeaderState? {
@@ -72,7 +68,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
             return nil
         }
     }
-
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
@@ -82,8 +78,6 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerHeightAnchor = headerView.heightAnchor.constraint(equalToConstant: topHeight)
         
-        let gesureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.handleGesture(_:)))
-        headerView?.addGestureRecognizer(gesureRecognizer)
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: view.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -102,7 +96,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         headerContentView?.pinHeader(to: headerView, height: height)
         
         addChild(vc)
-
+        
         vc.didMove(toParent: self)
     }
     
@@ -113,7 +107,7 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
         scrollable!.translatesAutoresizingMaskIntoConstraints = false
         
         addChild(vc)
-
+        
         NSLayoutConstraint.activate([
             scrollable!.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             scrollable!.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -121,25 +115,6 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
             scrollable!.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         vc.didMove(toParent: self)
-        vc.didScroll = handle(scrollView:with:)
-    }
-    
-    @objc func handleGesture(_ gestureRecognizer: UIPanGestureRecognizer) {
-        if gestureRecognizer.state == .began || gestureRecognizer.state == .changed {
-            let translation = gestureRecognizer.translation(in: self.headerView)
-            if let scrollView = scrollView {
-                handle(scrollView: scrollView, with: (translation.y * -1))
-            }
-            gestureRecognizer.setTranslation(CGPoint.zero, in: self.headerView)
-        }
-    }
-    
-    ////////////////////////////
-    
-    private var contentOffsetBounds: CGRect {
-        let width = scrollView!.contentSize.width
-        let height = scrollView!.contentSize.height - scrollView!.bounds.height
-        return CGRect(x: 0, y: 0, width: width, height: height)
     }
     
     private var contentOffset: CGPoint {
@@ -149,35 +124,31 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
     private var lastPan: Date?
     private var state: State = .default
     private var contentOffsetAnimation: TimerAnimation?
-
+    
     private func stopOffsetAnimation() {
         contentOffsetAnimation?.invalidate()
         contentOffsetAnimation = nil
     }
-        
+    
     var lastTranslation: CGPoint? = nil
     @objc private func handlePanRecognizer(_ sender: UIPanGestureRecognizer) {
         let newPan = Date()
         switch sender.state {
         case .began:
-            print("began")
             stopOffsetAnimation()
             state = .dragging(initialOffset: contentOffset)
-        lastTranslation = nil
+            lastTranslation = nil
         case .changed:
-            print("changed")
             let translation = sender.translation(in: self.view)
-            if case .dragging(let initialOffset) = state {
+            if case .dragging = state {
                 if lastTranslation == nil {
-                    handleScroll(scrollView!, with: -translation.y)
+                    handle(scrollView: scrollView!, with: -translation.y)
                 } else {
-                    handleScroll(scrollView!, with: lastTranslation!.y - translation.y)
-                    print(lastTranslation!.y - translation.y)
+                    handle(scrollView: scrollView!, with: lastTranslation!.y - translation.y)
                 }
                 lastTranslation = translation
-
             }
-        
+            
         case .ended:
             lastTranslation = nil
             state = .default
@@ -195,70 +166,54 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
             completeGesture(withVelocity: -velocity)
             
         case .cancelled:
+            lastTranslation = nil
             state = .default
             
         case .possible:
             break
-        
+            
         @unknown default:
             fatalError()
         }
         lastPan = newPan
     }
     
-    private func clampOffset(_ offset: CGPoint) -> CGPoint {
-        let rubberBand = RubberBand(dims: self.view.bounds.size, bounds: contentOffsetBounds)
-        return rubberBand.clamp(offset)
-    }
-    
     private func completeGesture(withVelocity velocity: CGPoint) {
-//        if scrollView!.contentOffset.y <= 0 {
-            startDeceleration(withVelocity: velocity)
-//        }
+        startDeceleration(withVelocity: velocity)
     }
-
     
     var lastDecelerationOffset: CGFloat? = nil
     private func startDeceleration(withVelocity velocity: CGPoint) {
         let d = UIScrollView.DecelerationRate.normal.rawValue
         let parameters = DecelerationTimingParameters(initialValue: .zero, initialVelocity: velocity,
                                                       decelerationRate: d, threshold: 0.1)
-                                                      
-        let destination = parameters.destination
         let duration = parameters.duration
-
+        
         lastDecelerationOffset = nil
         contentOffsetAnimation = TimerAnimation(
             duration: duration,
             animations: { [weak self] _, time in
                 let offset = parameters.value(at: time).y
                 if self!.lastDecelerationOffset == nil {
-                    self!.handleScroll(self!.scrollView!, with: offset)
+                    self!.handle(scrollView:self!.scrollView!, with: offset)
                 } else {
-                    self?.handleScroll(self!.scrollView!, with: offset - self!.lastDecelerationOffset!)
+                    self?.handle(scrollView:self!.scrollView!, with: offset - self!.lastDecelerationOffset!)
                 }
                 self?.lastDecelerationOffset = offset
             },
-            completion: { [weak self] finished in
-//                guard finished && intersection != nil else { return }
-            })
+            completion: { _ in } )
     }
-    
-    ////////////////////////////
     
     func handle(scrollView: UIScrollView, with offset: CGFloat) {
         if
-            let parent = parent as? Scrollable & HeaderContainable,
-            didScroll != nil
+            let parent = parent as? Scrollable & HeaderContainable
         {
             switch (parent.headerState, headerState) {
             case (.hidden, .inProgress):
                 break
             case (.visible, .visible), (.hidden, .hidden), (.inProgress, _):
-                didScroll?(scrollView, offset)
                 return
             case (_, .visible) where offset < 0:
-                didScroll?(scrollView, offset)
                 return
             case (_, .inProgress), (.visible, _):
                 break
@@ -266,7 +221,6 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
                 break
             }
         }
-        
         handleScroll(scrollView, with: offset)
     }
     
@@ -276,29 +230,9 @@ class HeaderContainerViewController: UIViewController, Scrollable, HeaderContain
             self.headerHeightAnchor.constant = 0
         } else if newHeight > self.topHeight {
             self.headerHeightAnchor.constant = self.topHeight
-        } else {
+        } else if !(offset < 0 && scrollView.contentOffset.y > 0 ) {
             self.headerHeightAnchor.constant = newHeight
-
-//            print(scrollView.panGestureRecognizer.state.rawValue)
-//            handlePanRecognizer(scrollView.panGestureRecognizer)
             scrollView.contentOffset.y = 0
         }
     }
-    
-    func render(offset: CGPoint) {
-        let newHeight: CGFloat = self.headerHeightAnchor.constant - offset.y
-
-        if newHeight >= 0 && newHeight <= topHeight {
-            self.headerHeightAnchor.constant = newHeight
-        }
-        
-    }
-}
-
-extension CGRect {
-    
-    func containsIncludingBorders(_ point: CGPoint) -> Bool {
-        return !(point.x < minX || point.x > maxX || point.y < minY || point.y > maxY)
-    }
-    
 }

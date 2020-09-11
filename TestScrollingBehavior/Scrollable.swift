@@ -9,7 +9,6 @@
 import UIKit
 
 protocol Scrollable: UIViewController {
-    var didScroll: ((UIScrollView, CGFloat) -> ())? { get set }
     var scrollView: UIScrollView? { get }
 }
 
