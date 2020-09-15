@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window = UIWindow(windowScene: windowScene)
         
         
-        let parentContainer = HeaderContainerViewController()
+        let parentContainer = CollapsableHeaderContainer()
         
 //        let rootNC = UINavigationController(rootViewController: )
         
@@ -30,7 +30,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window?.makeKeyAndVisible()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            let container = HeaderContainerViewController()
+            let container = CollapsableHeaderContainer()
             
             let topRed = TopController()
             
@@ -40,11 +40,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let scrollable = ScrollingViewController()
             
             
-            container.addHeader(topRed, height: 150)
+            container.addHeader(topRed, maxHeight: 150 ,shouldCollapse: false)
             container.addScrollable(scrollable)
             
-            
-            parentContainer.addHeader(topBlue, height: 200)
+            parentContainer.addHeader(topBlue, maxHeight: 200, shouldCollapse: true)
             parentContainer.addScrollable(container)
         }
         

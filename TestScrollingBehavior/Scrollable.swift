@@ -8,18 +8,6 @@
 
 import UIKit
 
-protocol Scrollable: UIViewController {
-    var scrollView: UIScrollView? { get }
-}
-
-enum HeaderState {
-    case hidden, inProgress, visible
-}
-
-protocol HeaderContainable {
-    var headerState: HeaderState? { get }
-}
-
 class ScrollingViewController: UITableViewController, Scrollable {
     
     var didEndScrolling: ((UIScrollView, CGPoint) -> ())?

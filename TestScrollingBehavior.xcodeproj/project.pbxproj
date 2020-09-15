@@ -18,6 +18,8 @@
 		FE1349D72509249A00C4F002 /* TimingParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1349CD2509249A00C4F002 /* TimingParameters.swift */; };
 		FE1349D82509249A00C4F002 /* DecelerationTimingParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1349CE2509249A00C4F002 /* DecelerationTimingParameters.swift */; };
 		FE1349DA250925BD00C4F002 /* Scrollable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1349D9250925BD00C4F002 /* Scrollable.swift */; };
+		FE7CAC0B2510D98B006F042F /* CollapsableHeaderContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7CAC0A2510D98B006F042F /* CollapsableHeaderContainer.swift */; };
+		FE7CAC0D2510E23A006F042F /* ScrollContainer+Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7CAC0C2510E23A006F042F /* ScrollContainer+Protocols.swift */; };
 		FE8195BF24C83C480022D360 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE8195BE24C83C480022D360 /* AppDelegate.swift */; };
 		FE8195C124C83C480022D360 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE8195C024C83C480022D360 /* SceneDelegate.swift */; };
 		FE8195C324C83C480022D360 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE8195C224C83C480022D360 /* ViewController.swift */; };
@@ -38,6 +40,8 @@
 		FE1349CD2509249A00C4F002 /* TimingParameters.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimingParameters.swift; sourceTree = "<group>"; };
 		FE1349CE2509249A00C4F002 /* DecelerationTimingParameters.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DecelerationTimingParameters.swift; sourceTree = "<group>"; };
 		FE1349D9250925BD00C4F002 /* Scrollable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scrollable.swift; sourceTree = "<group>"; };
+		FE7CAC0A2510D98B006F042F /* CollapsableHeaderContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsableHeaderContainer.swift; sourceTree = "<group>"; };
+		FE7CAC0C2510E23A006F042F /* ScrollContainer+Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScrollContainer+Protocols.swift"; sourceTree = "<group>"; };
 		FE8195BB24C83C480022D360 /* TestScrollingBehavior.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestScrollingBehavior.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE8195BE24C83C480022D360 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FE8195C024C83C480022D360 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -62,11 +66,8 @@
 		FE1349C32509249A00C4F002 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				FE1349C42509249A00C4F002 /* RubberBand.swift */,
-				FE1349C52509249A00C4F002 /* Utils */,
-				FE1349CC2509249A00C4F002 /* SpringTimingParameters.swift */,
-				FE1349CD2509249A00C4F002 /* TimingParameters.swift */,
-				FE1349CE2509249A00C4F002 /* DecelerationTimingParameters.swift */,
+				FE78D090250F6A2B001E14C2 /* ScrollContainer */,
+				FE78D08F250F69DB001E14C2 /* ScrollBehavior */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -82,6 +83,27 @@
 				FE1349CB2509249A00C4F002 /* TimerAnimation.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		FE78D08F250F69DB001E14C2 /* ScrollBehavior */ = {
+			isa = PBXGroup;
+			children = (
+				FE1349C42509249A00C4F002 /* RubberBand.swift */,
+				FE1349C52509249A00C4F002 /* Utils */,
+				FE1349CC2509249A00C4F002 /* SpringTimingParameters.swift */,
+				FE1349CD2509249A00C4F002 /* TimingParameters.swift */,
+				FE1349CE2509249A00C4F002 /* DecelerationTimingParameters.swift */,
+			);
+			path = ScrollBehavior;
+			sourceTree = "<group>";
+		};
+		FE78D090250F6A2B001E14C2 /* ScrollContainer */ = {
+			isa = PBXGroup;
+			children = (
+				FE7CAC0A2510D98B006F042F /* CollapsableHeaderContainer.swift */,
+				FE7CAC0C2510E23A006F042F /* ScrollContainer+Protocols.swift */,
+			);
+			path = ScrollContainer;
 			sourceTree = "<group>";
 		};
 		FE8195B224C83C480022D360 = {
@@ -189,6 +211,7 @@
 			files = (
 				FE1349D12509249A00C4F002 /* UISpringTimingParameters+Utils.swift in Sources */,
 				FE1349D22509249A00C4F002 /* GeometryUtils.swift in Sources */,
+				FE7CAC0B2510D98B006F042F /* CollapsableHeaderContainer.swift in Sources */,
 				FE8195C324C83C480022D360 /* ViewController.swift in Sources */,
 				FE1349D32509249A00C4F002 /* Comparable+Utils.swift in Sources */,
 				FE1349D52509249A00C4F002 /* TimerAnimation.swift in Sources */,
@@ -198,6 +221,7 @@
 				FE8195BF24C83C480022D360 /* AppDelegate.swift in Sources */,
 				FE1349D82509249A00C4F002 /* DecelerationTimingParameters.swift in Sources */,
 				FE1349D72509249A00C4F002 /* TimingParameters.swift in Sources */,
+				FE7CAC0D2510E23A006F042F /* ScrollContainer+Protocols.swift in Sources */,
 				FE1349CF2509249A00C4F002 /* RubberBand.swift in Sources */,
 				FE1349DA250925BD00C4F002 /* Scrollable.swift in Sources */,
 				FE8195C124C83C480022D360 /* SceneDelegate.swift in Sources */,
